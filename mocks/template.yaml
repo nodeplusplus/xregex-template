@@ -1,0 +1,207 @@
+CONNECTIONS:
+  REDIS:
+    uri: {{env XREGEX_CONNECTION_REDIS_URI "redis://127.0.0.1:6379/0"}}
+    database: {{env XREGEX_CONNECTION_REDIS_PREFIX "xregex"}}
+  FILE:
+    uri: {{realpath "mocks/database"}}
+  MONGODB:
+    uri: {{env XREGEX_CONNECTION_MONGODB_URI "mongodb://127.0.0.1:27017"}}
+    database: {{env XREGEX_CONNECTION_MONGODB_DATABASE "xregex"}}
+    clientOpts:
+      useNewUrlParser: true
+      useUnifiedTopology: true
+  RABBITMQ:
+    uri: {{env XREGEX_CONNECTION_RABBITMQ_URI "amqp://user:password@127.0.0.1:5672"}}
+
+logger:
+  type: file
+  options:
+    level: info
+    name: xregex/test
+
+XMiddleware:
+  directories:
+    - {{realpath "mocks/middlewares"}}
+configs:
+  type: XConfigFile
+
+scheduler:
+  type: SimpleScheduler
+  options:
+    stopConditions:
+      round: 3
+    middlewares:
+      - id: xregex.useConfigs
+        priority: 90
+        options:
+          tags:
+            - test
+            - xregex
+          collection: configs
+          scopes: news.ycombinator.com
+      - id: scheduler.checkRedirectedCount
+        priority: 80
+        options:
+          max: 1
+
+downloader:
+  type: SimpleDownloader
+  options:
+    middlewares:
+      before:
+        - id: downloader.buildRequestURL
+          priority: 90
+          options:
+            sources:
+              - "$context.metadata['template/request/url']"
+              - $context.payload.url
+            follow: true
+        - id: downloader.acquireResource
+          priority: 80
+          options:
+            tags:
+              - user-agent
+            prop: "headers['User-Agent']"
+            scopes:
+              - $context.payload.siteName
+            restrict: {{env XPROVIDER_CONNECTION_MONGODB_COLLECTION false}}
+        - id: downloader.acquireResource
+          priority: 70
+          options:
+            tags:
+              - proxy
+            prop: metadata.proxy
+            scopes:
+              - $context.payload.siteName
+            restrict: {{env XPROVIDER_CONNECTION_MONGODB_COLLECTION false}}
+      after:
+        - id: downloader.releaseResource
+          priority: 90
+          options:
+            tags:
+              - user-agent
+            scopes:
+              - $context.payload.siteName
+        - id: downloader.releaseResource
+          priority: 80
+          options:
+            tags:
+              - proxy
+            scopes:
+              - $context.payload.siteName
+
+pipeline:
+  type: SimplePipeline
+  options:
+    middlewares:
+      - id: pipeline.parse
+        priority: 90
+        options:
+          tags:
+            - $context.metadata.queue.exchange
+            - $context.metadata.queue.topic
+          collection: parsers
+          scopes:
+            - $context.payload.siteName
+      - id: pipeline.filter
+        priority: 80
+        options:
+          tags:
+            - $context.metadata.queue.exchange
+            - $context.metadata.queue.topic
+          collection: filters
+          scopes:
+            - $context.payload.siteName
+      - id: pipeline.countItems
+        priority: 70
+
+storage:
+  type: MongoDBStorage
+  collection: posts
+
+queue:
+  type: RabbitMQQueue
+  options:
+    route:
+      exchange: xregex
+      topic: queue
+    middlewares:
+      enqueue:
+        before:
+          - id: "test.mock"
+            priority: 90
+          - id: xregex.useConfigs
+            priority: 80
+            options:
+              tags:
+                - $context.metadata.queue.exchange
+                - $context.metadata.queue.topic
+                - enqueue
+              collection: configs
+        after:
+          - id: queue.lockDatasource
+            priority: 90
+            options:
+              keys:
+                - $context.metadata.queue.exchange
+                - $context.metadata.queue.topic
+      dequeue:
+        before:
+          - id: xregex.useConfigs
+            priority: 90
+            options:
+              tags:
+                - $context.metadata.queue.exchange
+                - $context.metadata.queue.topic
+                - dequeue
+              collection: configs
+              scopes:
+                - $context.payload.siteName
+        error:
+          - id: error.updateDatasource
+            priority: 90
+            options:
+              match: BAD_REQUEST|UNAUTHORIZED|FORBIDDEN|NOT_FOUND
+              deactivated: true
+          - id: error.updateDatasource
+            priority: 80
+
+datasource:
+  type: MongoDBDatasource
+  collection: spiders
+  options:
+    feed:
+      conditions:
+        - '{"$or":[{"_state.deactivatedAt":{"$exists":false}},{"_state.deactivatedAt":{"$gt":"$constant.datetime.now"}}]}'
+        - '{"$or":[{"_state.locked":{"$ne":"$context.metadata.queue.namespace"}},{"_state.locked":"$context.metadata.queue.namespace","_state.updatedAt":{"$lte":"$constant.datetime.before/30m"}}]}'
+      limit: {{env "XREGEX_DATASOURCE_FEED_LIMIT" 100}}
+    update:
+      "_state.priority": $priority
+      "_state.pagination": $context.pagination
+
+XProvider:
+  datasource:
+    type: MongoDBDatasource
+    options:
+      collection: {{env XPROVIDER_CONNECTION_MONGODB_COLLECTION "resources"}}
+      conditions:
+        - deactivatedAt:
+            $exists: false
+  quotaManager:
+    type: RedisQuotaManager
+    options:
+      ratemLimits:
+        proxy:
+          point: 200
+          duration: 60
+        "user-agent":
+          point: 2000
+          duration: 60
+  storage:
+    type: RedisStorage
+    options:
+      name: resources
+  rotation:
+    type: RedisRotation
+    options:
+      expiresIn: 300
