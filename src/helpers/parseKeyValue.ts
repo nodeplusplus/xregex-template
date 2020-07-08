@@ -2,7 +2,7 @@ import { unflatten } from "flat";
 
 import { GenericObject } from "../types";
 
-export function parseOverride(
+export function parseKeyValue(
   templates: string[],
   separator = "="
 ): GenericObject {

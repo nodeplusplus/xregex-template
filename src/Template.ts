@@ -18,7 +18,7 @@ export class XTemplate implements IXTemplate {
     const template = yaml.safeLoad(content, { schema, json: true });
 
     const override =
-      options?.override && helpers.parseOverride(options.override);
+      options?.override && helpers.parseKeyValue(options.override);
     return xhelpers.merge({}, template, options?.values, override);
   }
 

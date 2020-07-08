@@ -1,8 +1,8 @@
 import faker from "faker";
 
-import { parseOverride } from "../../../src/helpers/parseOverride";
+import { parseKeyValue } from "../../../src/helpers/parseKeyValue";
 
-describe("helpers.parseOverride", () => {
+describe("helpers.parseKeyValue", () => {
   const object = {
     id: faker.random.uuid(),
     tags: [{ name: faker.lorem.word() }],
@@ -10,7 +10,7 @@ describe("helpers.parseOverride", () => {
 
   it("should parse override template with default separator", () => {
     const templates = [`id=${object.id}`, `tags.0.name=${object.tags[0].name}`];
-    expect(parseOverride(templates)).toEqual(object);
+    expect(parseKeyValue(templates)).toEqual(object);
   });
 
   it("should parse override template with custom separator as well", () => {
@@ -19,6 +19,6 @@ describe("helpers.parseOverride", () => {
       `id${seperator}${object.id}`,
       `tags.0.name${seperator}${object.tags[0].name}`,
     ];
-    expect(parseOverride(templates, seperator)).toEqual(object);
+    expect(parseKeyValue(templates, seperator)).toEqual(object);
   });
 });
