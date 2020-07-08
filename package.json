@@ -1,6 +1,6 @@
 {
   "name": "@nodeplusplus/xregex-template",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Provide template functions of XRegex Platform",
   "main": "lib/index.js",
   "scripts": {
