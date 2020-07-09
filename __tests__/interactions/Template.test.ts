@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 
-import { XTemplate } from "../../src";
+import { XTemplate, GenericObject } from "../../src";
 
 describe("Template", () => {
   const content = fs.readFileSync(
@@ -52,22 +52,37 @@ describe("Template", () => {
     });
   });
 
-  describe("resolve", () => {
-    it("should return resolved template successfull", () => {
+  describe("dump", () => {
+    it("should return dumped template successfull", () => {
       const xtemplate = new XTemplate();
-      const resolvedContent = xtemplate.resolve(content);
+      const dumpedContent = xtemplate.dump(content);
 
-      expect(resolvedContent).toBeTruthy();
+      expect(typeof dumpedContent).toBe("string");
+      expect(dumpedContent).toBeTruthy();
     });
 
-    it("should return resolved template with options as well", () => {
+    it("should return dumped template with options as well", () => {
       const xtemplate = new XTemplate();
-      const resolvedContent = xtemplate.resolve(content, {
+      const dumpedContent = xtemplate.dump(content, {
         values: { TEST: true },
       });
 
-      expect(resolvedContent).toBeTruthy();
-      expect(resolvedContent.includes("TEST")).toBeTruthy();
+      expect(typeof dumpedContent).toBe("string");
+      expect(dumpedContent).toBeTruthy();
+      expect(dumpedContent.includes("TEST")).toBeTruthy();
+    });
+
+    it("should return a JSON instead of YAML string", () => {
+      const xtemplate = new XTemplate();
+      const dumpedContent = xtemplate.dump(
+        content,
+        { values: { TEST: true } },
+        true
+      );
+
+      expect(typeof dumpedContent).toBe("object");
+      expect(dumpedContent).toBeTruthy();
+      expect((dumpedContent as GenericObject).TEST).toBeTruthy();
     });
   });
 });

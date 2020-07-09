@@ -2,7 +2,11 @@ import { GenericObject } from "./Common";
 
 export interface IXTemplate {
   compile<T>(input: string, options?: IXTemplateCompileOptions): T;
-  resolve(input: string, options?: IXTemplateCompileOptions): string;
+  dump(
+    input: string,
+    options?: IXTemplateCompileOptions,
+    json?: boolean
+  ): string | GenericObject;
 }
 
 export interface IXTemplateCompileOptions {
