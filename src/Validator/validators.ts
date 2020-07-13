@@ -17,13 +17,13 @@ export const connection = Joi.object({
 }).required();
 
 export const validators = Joi.object({
-  CONNECTIONS: Joi.object({
-    FILE: Joi.object({
+  connections: Joi.object({
+    file: Joi.object({
       uri: Joi.string().required(),
     }),
-    REDIS: connection,
-    MONGODB: connection,
-    RABBITMQ: Joi.object({
+    redis: connection,
+    mongodb: connection,
+    rabbitmq: Joi.object({
       uri: Joi.string().uri().required(),
       clientOpts: Joi.object().optional().unknown(true),
     }),

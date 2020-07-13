@@ -18,7 +18,7 @@ describe("Template", () => {
       const keys = Object.keys(template);
       expect(keys.sort()).toEqual(
         [
-          "CONNECTIONS",
+          "connections",
           "logger",
           "XMiddleware",
           "configs",

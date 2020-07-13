@@ -1,16 +1,16 @@
-CONNECTIONS:
-  REDIS:
+connections:
+  redis:
     uri: {{env XREGEX_CONNECTION_REDIS_URI "redis://127.0.0.1:6379/0"}}
     database: {{env XREGEX_CONNECTION_REDIS_PREFIX "xregex"}}
-  FILE:
+  file:
     uri: {{realpath "mocks/database"}}
-  MONGODB:
+  mongodb:
     uri: {{env XREGEX_CONNECTION_MONGODB_URI "mongodb://127.0.0.1:27017"}}
     database: {{env XREGEX_CONNECTION_MONGODB_DATABASE "xregex"}}
     clientOpts:
       useNewUrlParser: true
       useUnifiedTopology: true
-  RABBITMQ:
+  rabbitmq:
     uri: {{env XREGEX_CONNECTION_RABBITMQ_URI "amqp://user:password@127.0.0.1:5672"}}
 
 logger:
