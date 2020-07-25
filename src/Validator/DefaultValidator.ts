@@ -14,8 +14,7 @@ export class DefaultValidator<T> implements IXTemplateValidator<T> {
     return steps;
   }
 
-  private validator?: IXTemplateValidator<any>;
-
+  protected validator?: IXTemplateValidator<any>;
   constructor(validator?: IXTemplateValidator<any>) {
     this.validator = validator;
   }
