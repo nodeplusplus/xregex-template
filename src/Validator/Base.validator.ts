@@ -1,27 +1,28 @@
 import _ from "lodash";
+import Joi from "joi";
 
 import {
   GenericObject,
   IXTemplateValidator,
   IXTemplateValidatorError,
 } from "../types";
-import { validators } from "./validators";
 
-export class DefaultValidator<T> implements IXTemplateValidator<T> {
-  public get steps() {
-    const steps = [DefaultValidator.name];
-    if (this.validator) steps.unshift(...this.validator.steps);
-    return steps;
+export abstract class BaseValidator implements IXTemplateValidator {
+  public get ids() {
+    const ids = [this.getId()];
+    if (this.validator) ids.unshift(...this.validator.ids);
+    return ids;
   }
 
-  protected validator?: IXTemplateValidator<any>;
-  constructor(validator?: IXTemplateValidator<any>) {
+  protected validator?: IXTemplateValidator;
+  constructor(validator?: IXTemplateValidator) {
     this.validator = validator;
   }
 
-  validate(template: T) {
+  public validate(template: any) {
     const prevErrors = this.validator ? this.validator.validate(template) : [];
 
+    const validators = this.getValidators();
     const { error } = validators.validate(template, { abortEarly: false });
     const errors = error
       ? error.details.map((error) => _.pick(error, ["type", "path", "message"]))
@@ -30,7 +31,10 @@ export class DefaultValidator<T> implements IXTemplateValidator<T> {
     return [...prevErrors, ...errors] as IXTemplateValidatorError[];
   }
 
-  getComponents(template: T): GenericObject {
+  public getComponents(template: any): GenericObject {
     return this.validator ? this.validator.getComponents(template) : {};
   }
+
+  protected abstract getId(): string;
+  protected abstract getValidators(): Joi.ObjectSchema;
 }

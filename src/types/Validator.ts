@@ -1,7 +1,7 @@
-export interface IXTemplateValidator<T> {
-  readonly steps: string[];
-  validate(template: T): Array<IXTemplateValidatorError>;
-  getComponents(template: T): any;
+export interface IXTemplateValidator {
+  readonly ids: string[];
+  validate(template: any): Array<IXTemplateValidatorError>;
+  getComponents(template: any): any;
 }
 export interface IXTemplateValidatorError {
   type: string;

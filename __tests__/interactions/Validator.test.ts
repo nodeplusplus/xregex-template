@@ -13,8 +13,8 @@ describe("Validator", () => {
   const template = xtemplate.compile<any>(content);
 
   it("should log all validator to .steps", () => {
-    expect(new DefaultValidator().steps).toEqual([DefaultValidator.name]);
-    expect(new DefaultValidator(new TestValidator()).steps).toEqual([
+    expect(new DefaultValidator().ids).toEqual([DefaultValidator.name]);
+    expect(new DefaultValidator(new TestValidator()).ids).toEqual([
       TestValidator.name,
       DefaultValidator.name,
     ]);
@@ -52,8 +52,8 @@ describe("Validator", () => {
   });
 });
 
-class TestValidator<T = any> implements IXTemplateValidator<T> {
-  get steps() {
+class TestValidator<T = any> implements IXTemplateValidator {
+  get ids() {
     return [TestValidator.name];
   }
 
