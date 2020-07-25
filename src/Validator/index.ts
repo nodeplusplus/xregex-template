@@ -1,2 +1,2 @@
-export * from "./Validator";
+export * from "./DefaultValidator";
 export * from "./validators";

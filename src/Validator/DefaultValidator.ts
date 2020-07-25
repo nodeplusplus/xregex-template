@@ -7,7 +7,13 @@ import {
 } from "../types";
 import { validators } from "./validators";
 
-export class DefaultTemplateValidator<T> implements IXTemplateValidator<T> {
+export class DefaultValidator<T> implements IXTemplateValidator<T> {
+  public get steps() {
+    const steps = [DefaultValidator.name];
+    if (this.validator) steps.unshift(...this.validator.steps);
+    return steps;
+  }
+
   private validator?: IXTemplateValidator<any>;
 
   constructor(validator?: IXTemplateValidator<any>) {

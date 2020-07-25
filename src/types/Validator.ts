@@ -1,4 +1,5 @@
 export interface IXTemplateValidator<T> {
+  readonly steps: string[];
   validate(template: T): Array<IXTemplateValidatorError>;
   getComponents(template: T): any;
 }
