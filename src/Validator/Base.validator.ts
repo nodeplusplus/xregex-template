@@ -28,7 +28,9 @@ export abstract class BaseValidator implements IXTemplateValidator {
       ? error.details.map((error) => _.pick(error, ["type", "path", "message"]))
       : [];
 
-    return [...prevErrors, ...errors] as IXTemplateValidatorError[];
+    return _.uniqBy([...prevErrors, ...errors], (e) =>
+      e.path.join(".")
+    ) as IXTemplateValidatorError[];
   }
 
   public getComponents(template: any): GenericObject {
